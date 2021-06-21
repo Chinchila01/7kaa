@@ -50,7 +50,7 @@
 
 #include <stdio.h>
 #include <iconv.h>
-#include <SDL.h>
+#include <SDL2/SDL.h>
 #include <SDL_ttf.h>
 
 #define MAX_GLYPHS 256

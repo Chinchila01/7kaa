@@ -33,10 +33,10 @@
 #include <dirent.h>
 #include <ctype.h>
 #include <sys/stat.h>
-#include <glob.h>
 #include <time.h>
 #endif
 
+#include <storage_constants.h>
 #include <posix_string_compat.h>
 
 #include <dbglog.h>
@@ -72,7 +72,7 @@ int Directory::read(const char *fileSpec, int sortName)
    FileInfo				fileInfo;
 #ifdef USE_WINDOWS
 	WIN32_FIND_DATA	findData;
-   
+
    //----------- get the file list -------------//
 
    HANDLE findHandle = FindFirstFile( fileSpec, &findData );
@@ -102,39 +102,147 @@ int Directory::read(const char *fileSpec, int sortName)
 	FindClose(findHandle);
 #endif
 #ifdef USE_POSIX
-   glob_t results;
-   glob(fileSpec, sortName ? 0 : GLOB_NOSORT, NULL, &results);
-   for( int i = 0; i < results.gl_pathc; i++ )
+   MSG("Listing Directory %s sortName=%d\n", fileSpec, sortName);
+
+   char dirname[MAX_PATH];
+   char search[MAX_PATH];
+   struct dirent **namelist;
+   int n;
+
+   char *slash = strrchr((char*)fileSpec, '/');
+   if (slash)
    {
-      struct stat file_stat;
-
-      if( stat(results.gl_pathv[i], &file_stat) )
+      char *s = (char*)fileSpec;
+      char *d = dirname;
+      int i = 0;
+      while (s != slash && i < MAX_PATH - 1)
       {
-         // can't read, skip
-         continue;
+         if (*s == '\\')
+            *d = '/';
+         else if (isalpha(*s))
+            *d = tolower(*s);
+         else
+            *d = *s;
+         d++;
+         s++;
+         i++;
       }
+      *d = 0;
 
-      misc.extract_file_name(fileInfo.name, results.gl_pathv[i]);
-      fileInfo.size = file_stat.st_size;
+      i = 0;
+      d = search;
+      s++;
+      while (*s && i < MAX_PATH - 1)
+      {
+         if (*s == '*')
+         {
+            s++;
+            i++;
+            continue;
+         }
+         else if (isalpha(*s))
+         {
+            *d = tolower(*s);
+         }
+         else
+         {
+            *d = *s;
+         }
+         d++;
+         s++;
+         i++;
+      }
+      *d = 0;
+   } else {
+      char *s = (char*)fileSpec;
+      char *d = search;
+      int i = 0;
 
-      struct tm *time = localtime(&file_stat.st_mtime);
-      fileInfo.time.year = time->tm_year+1900;
-      fileInfo.time.month = time->tm_mon+1;
-      fileInfo.time.day = time->tm_mday;
-      fileInfo.time.hour = time->tm_hour;
-      fileInfo.time.minute = time->tm_min;
+      while (*s && i < MAX_PATH - 1)
+      {
+         if (*s == '*')
+         {
+            s++;
+            i++;
+            continue;
+         }
+         else if (isalpha(*s))
+         {
+            *d = tolower(*s);
+         }
+         else
+         {
+            *d = *s;
+         }
+         d++;
+         s++;
+         i++;
+      }
+      *d = 0;
 
-      linkin(&fileInfo);
+
+      dirname[0] = '.';
+      dirname[1] = 0;
    }
-   globfree(&results);
+
+   MSG("directory=%s search=%s\n", dirname, search);
+   n = scandir(dirname, &namelist, 0, alphasort);
+   for (int i = 0; i < n; i++)
+   {
+      char filename[MAX_PATH];
+      char *s = namelist[i]->d_name;
+      char *d = filename;
+      int j = 0;
+      while (*s && j < MAX_PATH - 1)
+      {
+         if (isalpha(*s))
+            *d = tolower(*s);
+         else
+            *d = *s;
+         d++;
+         s++;
+         j++;
+      }
+      *d = 0;
+
+      if (strstr(filename, search))
+      {
+         char full_path[MAX_PATH];
+         struct stat file_stat;
+
+         full_path[0] = 0;
+         strcat(full_path, dirname);
+         strcat(full_path, "/");
+         strcat(full_path, namelist[i]->d_name);
+
+         stat(full_path, &file_stat);
+
+         strncpy(fileInfo.name, namelist[i]->d_name, MAX_PATH - 2);
+
+         fileInfo.size = file_stat.st_size;
+
+         struct tm *time = localtime(&file_stat.st_mtime);
+         fileInfo.time.year = time->tm_year+1900;
+         fileInfo.time.month = time->tm_mon+1;
+         fileInfo.time.day = time->tm_mday;
+         fileInfo.time.hour = time->tm_hour;
+         fileInfo.time.minute = time->tm_min;
+
+         linkin( &fileInfo );
+      }
+      free(namelist[i]);
+   }
+   if (n > -1)
+     free(namelist);
+
 #endif
 
-   //------ the file list by file name ---------//
+    //------ the file list by file name ---------//
 
-   if( sortName )
-      quick_sort( sort_file_function );
+    if( sortName )
+        quick_sort( sort_file_function );
 
-   return size();       // DynArray::size()
+    return size();       // DynArray::size()
 }
 //-------- End of function Directory::read -------//
 
@@ -143,6 +251,6 @@ int Directory::read(const char *fileSpec, int sortName)
 //
 static int sort_file_function( const void *a, const void *b )
 {
-	return strcmpi( ((FileInfo*)a)->name, ((FileInfo*)b)->name );
+    return strcasecmp( ((FileInfo*)a)->name, ((FileInfo*)b)->name );
 }
 //------- End of function sort_file_function ------//

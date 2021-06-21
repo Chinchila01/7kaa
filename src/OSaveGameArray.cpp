@@ -48,6 +48,7 @@
 #include <ONATIONA.h>
 #include "gettext.h"
 
+#include <strings.h> //strcasecmp
 #include <string.h> //strncpy
 #include <posix_string_compat.h> //strnicmp
 
@@ -846,7 +847,7 @@ void SaveGameArray::set_file_name(char* /*out*/ fileName, int size)
 		SaveGame* findSaveGame = (*this)[i];
 
 		// ##### begin Gilbert 3/10 ########//
-		if( strnicmp(findSaveGame->file_info.name, str, NAME_PREFIX_LEN)==0 )
+		if( strncasecmp(findSaveGame->file_info.name, str, NAME_PREFIX_LEN)==0 )
 			// ##### end Gilbert 3/10 ########//
 		{
 			//------------------------------------------------//
@@ -927,18 +928,18 @@ static int sort_game_file_function( const void *a, const void *b )
 {
 	int firstAuto = 0, secondAuto = 0;
 
-	firstAuto = strcmpi( ((SaveGame*)a)->file_info.name, "AUTO.SAV" ) == 0 ? 1 :
-		(strcmpi( ((SaveGame*)a)->file_info.name, "AUTO2.SAV" ) == 0 ? 2 : 0);
+	firstAuto = strcasecmp( ((SaveGame*)a)->file_info.name, "AUTO.SAV" ) == 0 ? 1 :
+		(strcasecmp( ((SaveGame*)a)->file_info.name, "AUTO2.SAV" ) == 0 ? 2 : 0);
 	if (firstAuto != 1) // only check second if first is not AUTO.SAV
-		secondAuto = strcmpi( ((SaveGame*)b)->file_info.name, "AUTO.SAV" ) == 0 ? 1 :
-			(strcmpi( ((SaveGame*)b)->file_info.name, "AUTO2.SAV" ) == 0 ? 2 : 0);
+		secondAuto = strcasecmp( ((SaveGame*)b)->file_info.name, "AUTO.SAV" ) == 0 ? 1 :
+			(strcasecmp( ((SaveGame*)b)->file_info.name, "AUTO2.SAV" ) == 0 ? 2 : 0);
 
 	if (firstAuto == 1 || (firstAuto == 2 && secondAuto != 1))
 		return -1;
 	else if (secondAuto > 0)
 		return 1;
 	else
-		return strcmpi( ((SaveGame*)a)->file_info.name, ((SaveGame*)b)->file_info.name );
+		return strcasecmp( ((SaveGame*)a)->file_info.name, ((SaveGame*)b)->file_info.name );
 }
 //------- End of function sort_game_file_function ------//
 

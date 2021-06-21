@@ -25,7 +25,7 @@
 #define __VGABUF_H
 
 #include <IMGFUN.h>
-#include <SDL.h>
+#include <SDL2/SDL.h>
 
 //-------- Define class VgaBuf ----------------//
 

@@ -33,6 +33,8 @@
 #include <errno.h>
 #include "gettext.h"
 
+#include <strings.h> // strcasecmp
+
 #define CHECK_BOUND(n,x,y) n<x || n>y
 
 union KeyEventMap
@@ -303,17 +305,17 @@ int ConfigAdv::set(char *name, char *value)
 	}
 	else if( !strcmp(name, "nation_ai_unite_min_relation_level") )
 	{
-		if( !strcmpi(value, "hostile") )
+		if( !strcasecmp(value, "hostile") )
 			nation_ai_unite_min_relation_level = NATION_HOSTILE;
-		else if( !strcmpi(value, "tense") )
+		else if( !strcasecmp(value, "tense") )
 			nation_ai_unite_min_relation_level = NATION_TENSE;
-		else if( !strcmpi(value, "neutral") )
+		else if( !strcasecmp(value, "neutral") )
 			nation_ai_unite_min_relation_level = NATION_NEUTRAL;
-		else if( !strcmpi(value, "friendly") )
+		else if( !strcasecmp(value, "friendly") )
 			nation_ai_unite_min_relation_level = NATION_FRIENDLY;
-		else if( !strcmpi(value, "alliance") )
+		else if( !strcasecmp(value, "alliance") )
 			nation_ai_unite_min_relation_level = NATION_ALLIANCE;
-		else if( !strcmpi(value, "off") )
+		else if( !strcasecmp(value, "off") )
 			nation_ai_unite_min_relation_level = NATION_ALLIANCE+1; // disables
 		else
 			return 0;
@@ -338,7 +340,7 @@ int ConfigAdv::set(char *name, char *value)
 	else if( !strcmp(name, "race_random_list") )
 	{
 		// the game defaults to all
-		if( !strcmpi(value, "original") )
+		if( !strcasecmp(value, "original") )
 		{
 			race_random_list_max = 7;
 			for (int i = 0; i < race_random_list_max; i++)
@@ -457,9 +459,9 @@ static int read_int(char *in, int *out)
 
 static int read_bool(char *in, char *out)
 {
-	if( !strcmpi(in, "true") )
+	if( !strcasecmp(in, "true") )
 		*out = 1;
-	else if( !strcmpi(in, "false") )
+	else if( !strcasecmp(in, "false") )
 		*out = 0;
 	else
 		return 0;

@@ -39,6 +39,20 @@ static void init_dpi();
 static int init_window_flags();
 static void init_window_size();
 
+static void myLogFn(void* userdata, int category, SDL_LogPriority priority, const char* message)
+{
+// Change to fit your needs (like to output to a file)
+    FILE *file;
+
+    file = fopen("log.txt", "a");
+    if( !file )
+        return;
+
+    fprintf(file, message);
+
+    fclose(file);
+}
+
 //------ Define static class member vars ---------//
 
 char    Vga::use_back_buf = 0;
@@ -85,8 +99,19 @@ int Vga::init()
    mouse_mode = MOUSE_INPUT_ABS;
    boundary_set = 0;
 
-   if (SDL_Init(SDL_INIT_VIDEO))
+   if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK))
       return 0;
+
+    // TODO - Why quit though?
+   for (int i = 0; i < 2; i++) {
+       if (SDL_JoystickOpen(i) == NULL) {
+           SDL_Log("SDL_JoystickOpen: %s\n", SDL_GetError());
+           SDL_Quit();
+           return -1;
+       }
+   }
+
+   SDL_LogSetOutputFunction(&myLogFn, NULL);
 
    init_window_size();
 
@@ -108,7 +133,7 @@ int Vga::init()
    if( config_adv.vga_full_screen )
       set_window_grab(WINGRAB_ON);
 
-   renderer = SDL_CreateRenderer(window, -1, 0);
+   renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE);
    if( !renderer )
       return 0;
 
@@ -129,7 +154,7 @@ int Vga::init()
    // Cannot use SDL_PIXELFORMAT_INDEX8:
    //   Palettized textures are not supported
    texture = SDL_CreateTexture(renderer,
-                               window_pixel_format,
+                               SDL_PIXELFORMAT_ARGB8888,
                                SDL_TEXTUREACCESS_STREAMING,
                                VGA_WIDTH,
                                VGA_HEIGHT);
@@ -545,14 +570,47 @@ void Vga::handle_messages()
          mouse.update_skey_state();
          break;
       case SDL_TEXTINPUT:
-         mouse.add_typing_event(event.text.text, misc.get_time());
-         break;
-      case SDL_TEXTEDITING:
+          mouse.add_typing_event(event.text.text, misc.get_time());
+          break;
+
       case SDL_JOYAXISMOTION:
+          if ((event.jaxis.value < -3200) || (event.jaxis.value > 3200)) {
+              if (event.jaxis.axis == 0) {
+                  mouse.process_mouse_motion(mouse.cur_x + event.jaxis.value / 3276, mouse.cur_y);
+              }
+
+              if (event.jaxis.axis == 1) {
+                  mouse.process_mouse_motion(mouse.cur_x, mouse.cur_y + event.jaxis.value / 3276);
+              }
+          }
+          break;
+      case SDL_JOYBUTTONDOWN:
+          if (event.jbutton.which == 0) {
+              if (event.jbutton.button == 0) {
+                  // (A) button down
+                  mouse.add_event(LEFT_BUTTON);
+              } else if (event.jbutton.button == 1) {
+                  // (B) button down
+                  mouse.add_event(RIGHT_BUTTON);
+              }
+          }
+          break;
+
+      case SDL_JOYBUTTONUP:
+          if (event.jbutton.which == 0) {
+              if (event.jbutton.button == 0) {
+                  // (A) button up
+                  mouse.add_event(LEFT_BUTTON_RELEASE);
+                  mouse.reset_boundary();
+              } else if (event.jbutton.button == 1) {
+                  // (B) button up
+                  mouse.add_event(RIGHT_BUTTON_RELEASE);
+              }
+          }
+          break;
+      case SDL_TEXTEDITING:
       case SDL_JOYBALLMOTION:
       case SDL_JOYHATMOTION:
-      case SDL_JOYBUTTONDOWN:
-      case SDL_JOYBUTTONUP:
       default:
          MSG("unhandled event %d\n", event.type);
          break;
@@ -908,15 +966,9 @@ void Vga::save_status_report()
       SDL_Rect rect;
       SDL_DisplayMode mode;
       float ddpi, hdpi, vdpi;
-      int num_modes, cur_mode, j;
-      num_modes = SDL_GetNumDisplayModes(i);
-      cur_mode = SDL_GetCurrentDisplayMode(i, NULL);
-      fprintf(file, "-- Display %d using mode %d--\n", i, cur_mode);
-      for( j=0; j<num_modes; j++ )
-      {
-          if( !SDL_GetDisplayMode(i, j, &mode) )
-              fprintf(file, "Mode %d: %dx%dx%ubpp %dHz format=%s driver=%p\n", j, mode.w, mode.h, SDL_BITSPERPIXEL(mode.format), mode.refresh_rate, SDL_GetPixelFormatName(mode.format), mode.driverdata);
-      }
+      fprintf(file, "-- Display %d --\n", i);
+      if( !SDL_GetCurrentDisplayMode(i, &mode) )
+         fprintf(file, "Mode: %dx%dx%ubpp %dHz format=%s driver=%p\n", mode.w, mode.h, SDL_BITSPERPIXEL(mode.format), mode.refresh_rate, SDL_GetPixelFormatName(mode.format), mode.driverdata);
       if( !SDL_GetDisplayDPI(i, &ddpi, &hdpi, &vdpi) )
          fprintf(file, "DPI: diag=%f horiz=%f vert=%f\n", ddpi, hdpi, vdpi);
       if( !SDL_GetDisplayBounds(i, &rect) )

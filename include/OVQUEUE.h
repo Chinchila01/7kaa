@@ -21,7 +21,6 @@
 // Filename    : OVQUEUE.H
 // Description : header file of variable length queue
 
-#include <stdint.h>
 
 #ifndef __OVQUEUE_H
 #define __OVQUEUE_H
@@ -52,8 +51,6 @@ public:
 	void   append_queue(VLenQueue &);
 	void   swap(VLenQueue &);
 	int    length();
-
-	uint8_t crc8();
 
 private:
 

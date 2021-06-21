@@ -24,6 +24,10 @@
 #include <ALL.h>
 #include <version.h>
 
+#ifdef __SWITCH__
+#include <switch.h>
+#endif
+
 #ifdef ENABLE_INTRO_VIDEO
 #include <initguid.h>
 #include <dshow.h>
@@ -298,7 +302,7 @@ static void extra_error_handler();
 //
 int main(int argc, char **argv)
 {
-	if (!sys.set_game_dir())
+    if (!sys.set_game_dir())
 		return 1;
 	locale_res.init();
 	sys.set_config_dir();

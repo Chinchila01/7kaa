@@ -1,7 +1,7 @@
 Seven Kingdoms: Ancient Adversaries
 -----------------------------------
 
-Release version 2.15.5-dev
+Release version 2.15.4
 Project website: www.7kfans.com
 
 This is a GPL release of the Seven Kingdoms: Ancient Adversaries thanks to
@@ -11,8 +11,22 @@ details of the license. We are indebted to Enlight for making the 7kfans
 project possible and giving a new chance to build a community for fans
 of the game.
 
-Summary of changes from 2.15.4 to 2.15.5
+Summary of changes from 2.15.3 to 2.15.4
 ---------
+ * Fixed a problem in multiplayer that halted the game play.
+ * Added option to play with the original seven kingdoms, and enabled on original scenarios.
+ * Apply the leadership bonus when the general is in fort for defending soldiers in range.
+ * Fixed the mobile general range calculation for the leadership bonus to not apply to the troop anywhere on the map.
+ * Apply the leadership bonus when the general is on a ship for defending soldiers in range.
+ * Updated translations.
+ * Added hotkeys for managing the build menu in the War Factory, Harbor, and Town.
+ * Restored support for real full screen resolution that requires a screen mode change.
+ * Improved dynamic UI button and text layout.
+ * Added Polish translation.
+ * Added trade locations to the trade report.
+ * Sort and filter trade locations based on the map selected caravan.
+ * Allow setting stops using the trade report.
+ * Allow copying trade routes using the trade report.
 
 
 System Requirements
@@ -31,10 +45,10 @@ Building the game
 ---------
 
 Required dependencies
-* GCC 4.6+ C++11 compliant compiler
-* SDL 2.0.8
-* enet 1.3.xx Reliable UDP networking library
-* OpenAL-soft or equivalent driver
+* GCC 4.6+ (C++11 compliant compiler)
+* SDL 2.0.8 (http://libsdl.org/)
+* enet 1.3.xx (http://enet.bespin.org/)
+* OpenAL-soft or equivalent driver (http://kcat.strangesoft.net/openal.html)
 
 Optional dependencies
 * Autoconf 2.65 (when using git snapshot)

@@ -46,6 +46,7 @@
 #include <ConfigAdv.h>
 
 #include <posix_string_compat.h>
+#include <strings.h> // strcasecmp
 
 #include "gettext.h"
 
@@ -271,7 +272,7 @@ void Tutor::load(int tutorId)
 
 		//------ read in the display button code of the tutorial segment -------//
 
-		if( strcmpi( tokenStr, "Button" ) == 0 )
+		if( strcasecmp( tokenStr, "Button" ) == 0 )
 		{
 			fileTxt.get_token(1);		// advance the pointer
 

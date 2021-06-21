@@ -127,7 +127,7 @@ void Config::default_game_setting()
 	fire_spread_rate = 0;          // 0 to disable, 10 for normal
 	wind_spread_fire_rate = 5;     // 0 to disable, 5 for normal
 	fire_fade_rate = 2;            // 1 for slow, 2 for fast
-	fire_restore_prob = 80;        // 0 to 100, 5 for normal (with spreading) 
+	fire_restore_prob = 80;        // 0 to 100, 5 for normal (with spreading)
 	rain_reduce_fire_rate = 5;     // 0 to 20, 5 for normal
 	fire_damage = 2;               // 0 to disable 2 for normal
 }

@@ -521,12 +521,14 @@ int Sys::set_config_dir()
       strcpy(dir_config, home);
       strcat(dir_config, PATH_DELIM);
    }
+   #ifndef __SWITCH__
    else
    {
       home = SDL_GetPrefPath(CONFIG_ORGANIZATION_NAME, CONFIG_APPLICATION_NAME);
       strcpy(dir_config, home);
       SDL_free(home);
    }
+   #endif
 
    MSG("Game config dir path: %s\n", dir_config);
 
@@ -851,7 +853,7 @@ void Sys::main_loop(int isLoadedGame)
                   // cannot compare every frame, as PROCESS_FRAME_DELAY >= 1
                   crc_store.record_all();
                   if( !remote.is_replay() )
-                     crc_store.send_frame();
+                     crc_store.send_all();
                }
                // ###### patch end Gilbert 20/1 ######//
 

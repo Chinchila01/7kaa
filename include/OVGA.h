@@ -27,7 +27,7 @@
 
 #include <OVGABUF.h>
 #include <COLOR.h>
-#include <SDL.h>
+#include <SDL2/SDL.h>
 
 //----------- define constants ----------//
 

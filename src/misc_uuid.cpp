@@ -40,7 +40,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #ifndef USE_WINDOWS
-#include <unistd.h>
+#include <sys/unistd.h>
 #include <sys/time.h>
 #endif
 
@@ -105,7 +105,7 @@ static int get_random_fd(void)
 				fcntl(fd, F_SETFD, i | FD_CLOEXEC);
 		}
 #endif
-		srand((getpid() << 16) ^ getuid() ^ tv.tv_sec ^ tv.tv_usec);
+		srand((getpid() << 16) ^ 1 ^ tv.tv_sec ^ tv.tv_usec);
 	}
 	/* Crank the random number generator a few times */
 	gettimeofday(&tv, 0);

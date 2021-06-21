@@ -119,7 +119,6 @@ void World::init_fire()
 // ----------- begin of function World::spread_fire ---------- //
 void World::spread_fire(Weather &w)
 {
-	
 	char fireValue;
 	int x,y;
 	Location *locPtr;
@@ -297,8 +296,8 @@ void World::spread_fire(Weather &w)
 				fireValue -= 50;
 			}
 
-			locPtr->set_fire_str(fireValue);
-			locPtr->set_fire_src(flammability);
+			locPtr->set_fire_str(-50);
+			locPtr->set_fire_src(-100);
 		}
 	}
 }
