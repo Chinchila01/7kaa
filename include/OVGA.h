@@ -84,6 +84,7 @@ private:
 	int win_grab_user_mode;
 	int bound_x1, bound_y1, bound_x2, bound_y2;
 	int boundary_set;
+	int n_fingers;
 
 public:
 	ColorTable*    vga_color_table;

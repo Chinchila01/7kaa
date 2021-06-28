@@ -241,7 +241,7 @@ public:
 	void 	add_key_event(unsigned, unsigned long);
 	int  	get_event();
 	void	poll_event();
-	void    process_mouse_motion(int x, int y);
+	void    process_mouse_motion(int x, int y, bool is_abs = false);
 	// #### begin Gilbert 31/10 #########//
 	void	update_skey_state();
 	// #### end Gilbert 31/10 #########//

@@ -98,6 +98,7 @@ int Vga::init()
    win_grab_user_mode = 0;
    mouse_mode = MOUSE_INPUT_ABS;
    boundary_set = 0;
+   n_fingers = 0;
 
    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK))
       return 0;
@@ -395,9 +396,6 @@ void Vga::handle_messages()
             mouse.process_scroll(event.mgesture.x, event.mgesture.y);
          }
          break;
-      case SDL_FINGERDOWN:
-         mouse.end_scroll();
-         break;
       case SDL_MOUSEWHEEL:
           mouse.process_scroll(event.wheel.x, event.wheel.y * -1);
           break;
@@ -608,6 +606,44 @@ void Vga::handle_messages()
               }
           }
           break;
+
+      case SDL_FINGERDOWN:
+      {
+          mouse.end_scroll();
+          mouse.process_mouse_motion(event.tfinger.x * VGA_WIDTH, event.tfinger.y * VGA_HEIGHT, true);
+
+          n_fingers++;
+
+          break;
+      }
+      case SDL_FINGERUP:
+      {
+          if (event.tfinger.dx == 0 && event.tfinger.dy == 0) {
+              if (n_fingers == 2) {
+                  mouse.add_event(RIGHT_BUTTON);
+              } else {
+                  mouse.add_event(LEFT_BUTTON);
+              }
+          }
+
+          mouse.add_event(LEFT_BUTTON_RELEASE);
+          mouse.add_event(RIGHT_BUTTON_RELEASE);
+
+          n_fingers--;
+          break;
+      }
+      case SDL_FINGERMOTION:
+      {
+          if (n_fingers == 3) {
+              mouse.process_scroll(event.tfinger.dx, event.tfinger.dy);
+          }
+          else {
+
+              mouse.process_mouse_motion(event.tfinger.x * VGA_WIDTH, event.tfinger.y * VGA_HEIGHT);
+          }
+
+          break;
+      }
       case SDL_TEXTEDITING:
       case SDL_JOYBALLMOTION:
       case SDL_JOYHATMOTION:
