@@ -1553,6 +1553,23 @@ void Sys::process_key(unsigned scanCode, unsigned skeyState)
 }
 //--------- End of function Sys::process_key ---------//
 
+//-------- Begin of function Sys::process_key --------//
+//
+void Sys::process_joystick_key(unsigned joystick_key)
+{
+    //----- don't detect letter keys when in chat mode ----//
+
+    if( !(view_mode == MODE_NATION &&
+          info.nation_report_mode == NATION_REPORT_CHAT) )
+    {
+        switch (joystick_key) {
+            case SWITCH_KEY_PLUS: // (+) key
+                in_game_menu.enter(!remote.is_enable());
+                break;
+        }
+    }
+}
+//--------- End of function Sys::process_key ---------//
 
 //-------- Begin of function Sys::detect_letter_key --------//
 //

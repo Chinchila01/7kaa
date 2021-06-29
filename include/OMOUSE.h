@@ -42,6 +42,12 @@ enum MouseEventType
 	RIGHT_BUTTON_RELEASE = LEFT_BUTTON_RELEASE+1,
 	KEY_RELEASE = 6,
 	KEY_TYPING = 7,
+	JOYSTICK_KEY_PRESS = 8
+};
+
+enum SwitchKeyEventType
+{
+    SWITCH_KEY_PLUS = 10,
 };
 
 enum KeyEventType : int
@@ -112,6 +118,7 @@ enum KeyEventType : int
 };
 #define GETKEY(n) mouse.get_key_code(n)
 #define ISKEY(n) mouse.is_key_event(n)
+#define ISJOYSTICK(n) mouse.is_joystick_event(n)
 
 //------- Define struct MouseEvent --------//
 
@@ -125,6 +132,7 @@ struct MouseEvent               // event buffer structure
 
 	int      x, y;               // mousecursor coordinates
 	unsigned scan_code;          // if scan_code>0 then it's a key press event
+	unsigned joystick_key;
 	char typing;
 };
 
@@ -217,6 +225,7 @@ public:
 	MouseEventType mouse_event_type;
 											 // use : LEFT_BUTTON=0, RIGHT_BUTTON=1
 	unsigned scan_code;             // key pressed, keyboard event
+	unsigned joystick_key;             // key pressed, keyboard event
 	unsigned key_code;				// converted from scan_code and event_skey_state
 	unsigned unique_key_code;	// any key pressed unfiltered by modifiers
 	char typing_char;
@@ -239,6 +248,7 @@ public:
 	void 	add_event(MouseEvent *);
 	void 	add_event(MouseEventType type);
 	void 	add_key_event(unsigned, unsigned long);
+	void    add_joystick_key_event(unsigned, unsigned long);
 	int  	get_event();
 	void	poll_event();
 	void    process_mouse_motion(int x, int y, bool is_abs = false);
@@ -279,11 +289,12 @@ public:
 	int  	release_y(int buttonId=0)   { return click_buffer[buttonId].release_y; }
 	int  	click_count(int buttonId=0) { return click_buffer[buttonId].count; }
 
-	int	is_mouse_event()            { return has_mouse_event; }
-	int	is_key_event()              { return scan_code; }
-	int	is_any_event()              { return has_mouse_event || scan_code; }
-	int	is_press_button_event()     { return has_mouse_event && (mouse_event_type == LEFT_BUTTON || mouse_event_type == RIGHT_BUTTON); }
-	int	is_release_button_event()   { return has_mouse_event && (mouse_event_type == LEFT_BUTTON_RELEASE || mouse_event_type == RIGHT_BUTTON_RELEASE); }
+	int	is_mouse_event()                { return has_mouse_event; }
+	int	is_key_event()                  { return scan_code; }
+	int is_joystick_key_event()         { return joystick_key; }
+	int	is_any_event()                  { return has_mouse_event || scan_code; }
+	int	is_press_button_event()         { return has_mouse_event && (mouse_event_type == LEFT_BUTTON || mouse_event_type == RIGHT_BUTTON); }
+	int	is_release_button_event()       { return has_mouse_event && (mouse_event_type == LEFT_BUTTON_RELEASE || mouse_event_type == RIGHT_BUTTON_RELEASE); }
 
 	void	reset_click();
 

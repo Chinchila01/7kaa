@@ -446,6 +446,35 @@ void Mouse::add_key_event(unsigned scanCode, unsigned long timeStamp)
 }
 //----------- End of Mouse::add_key_event ----------//
 
+//--------- Start of Mouse::add_joystick_key_event ---------//
+//
+// Called by key handler to save the joystick key pressed
+//
+// This assumes a joystick button down event.
+void Mouse::add_joystick_key_event(unsigned joystick_key, unsigned long timeStamp)
+{
+    if((head_ptr == tail_ptr-1) ||               // see if the buffer is full
+       (head_ptr == EVENT_BUFFER_SIZE-1 && tail_ptr == 0))
+    {
+        return;
+    }
+
+    MouseEvent *ev = event_buffer + head_ptr;
+
+    ev->event_type = JOYSTICK_KEY_PRESS;
+    ev->joystick_key = joystick_key;
+    ev->time = timeStamp;
+
+    // put mouse state
+    // ev->state = 0;			//ev->state = left_press | right_press;
+    ev->x = cur_x;
+    ev->y = cur_y;
+
+    if(++head_ptr >= EVENT_BUFFER_SIZE)  // increment the head ptr
+        head_ptr = 0;
+}
+//----------- End of Mouse::add_joystick_key_event ----------//
+
 
 //--------- Start of Mouse::get_event ---------//
 //
@@ -466,6 +495,7 @@ int Mouse::get_event()
 	if(head_ptr == tail_ptr)     // no event queue left in the buffer
 	{
 		scan_code      =0;        // no keyboard event
+        joystick_key   =0;
 		key_code       =0;
 		unique_key_code=0;
 		typing_char    =0;
@@ -498,6 +528,7 @@ int Mouse::get_event()
 		cptr->x    = eptr->x;
       cptr->y    = eptr->y;
 		scan_code       = 0;
+        joystick_key    = 0;
 		key_code        = 0;
 		unique_key_code = 0;
 		typing_char     = 0;
@@ -508,17 +539,28 @@ int Mouse::get_event()
 		scan_code = eptr->scan_code;
 		key_code = mouse.is_key(scan_code, event_skey_state, (unsigned short)0, K_CHAR_KEY);
 		unique_key_code = mouse.is_key(scan_code, 0, (unsigned short)0, K_UNIQUE_KEY);
+        joystick_key    = 0;
 		typing_char     = 0;
 		has_mouse_event = 0;
 		break;
 
-	case LEFT_BUTTON_RELEASE:
+    case JOYSTICK_KEY_PRESS:
+        joystick_key = eptr->joystick_key;
+        scan_code       = 0;
+        key_code        = 0;
+        unique_key_code = 0;
+        typing_char     = 0;
+        has_mouse_event = 0;
+        break;
+
+    case LEFT_BUTTON_RELEASE:
 	case RIGHT_BUTTON_RELEASE:
 		cptr = click_buffer + eptr->event_type - LEFT_BUTTON_RELEASE;
 		cptr->release_time = eptr->time;
 		cptr->release_x    = eptr->x;
 		cptr->release_y    = eptr->y;
 		scan_code          = 0;
+		joystick_key       = 0;
 		key_code           = 0;
 		unique_key_code    = 0;
 		typing_char        = 0;
@@ -531,6 +573,7 @@ int Mouse::get_event()
 
 	case KEY_TYPING:
 		scan_code       = 0;
+        joystick_key    = 0;
 		key_code        = 0;
 		unique_key_code = 0;
 		typing_char     = eptr->typing;

@@ -106,6 +106,11 @@ void Sys::detect()
 		process_key(mouse.scan_code, mouse.event_skey_state);
 	}
 
+	if( mouse.is_joystick_key_event() )
+    {
+        process_joystick_key(mouse.joystick_key);
+    }
+
 	detect_button();		// detect main buttons on the screen
 
 	detect_view();
@@ -684,7 +689,7 @@ void Sys::update_view()
 		{
 			vga.use_back();
 /*
-			char* germanStr = "d ü    ä    ß    ö    Ä    Ü    Ö";
+			char* germanStr = "d ï¿½    ï¿½    ï¿½    ï¿½    ï¿½    ï¿½    ï¿½";
 
 			vga_back.bar( ZOOM_X1, ZOOM_Y1, ZOOM_X1+300, ZOOM_Y1+150, VGA_LIGHT_GREEN );
 

@@ -228,6 +228,8 @@ private:
 
 	void		process_key(unsigned scanCode, unsigned skeyState);
 
+	void        process_joystick_key(unsigned joystick_key);
+
 	void		detect_letter_key(unsigned scanCode, unsigned skeyState);
 	void		detect_function_key(unsigned scanCode, unsigned skeyState);
 	void		detect_cheat_key(unsigned scanCode, unsigned skeyState);

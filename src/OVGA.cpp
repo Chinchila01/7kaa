@@ -583,15 +583,25 @@ void Vga::handle_messages()
           }
           break;
       case SDL_JOYBUTTONDOWN:
+
+#ifdef __SWITCH__
           if (event.jbutton.which == 0) {
-              if (event.jbutton.button == 0) {
-                  // (A) button down
-                  mouse.add_event(LEFT_BUTTON);
-              } else if (event.jbutton.button == 1) {
-                  // (B) button down
-                  mouse.add_event(RIGHT_BUTTON);
+              switch (event.jbutton.button) {
+                  case 0:
+                      // (A) button down
+                      mouse.add_event(LEFT_BUTTON);
+                      break;
+                  case 1:
+                      // (B) button down
+                      mouse.add_event(RIGHT_BUTTON);
+                      break;
+                  default:
+                      // Any other key button down
+                      mouse.add_joystick_key_event(event.jbutton.button, misc.get_time());
+                      break;
               }
           }
+#endif
           break;
 
       case SDL_JOYBUTTONUP:

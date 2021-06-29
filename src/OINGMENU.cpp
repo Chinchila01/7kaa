@@ -179,7 +179,7 @@ int InGameMenu::detect()
          break;
 
       if( i == GAME_OPTION_COUNT &&    // assume last option is 'continue'
-         (mouse.any_click(1) || mouse.key_code==KEY_ESC) )
+         (mouse.any_click(1) || mouse.key_code==KEY_ESC || mouse.joystick_key == SWITCH_KEY_PLUS) )
          break;
    }
 
