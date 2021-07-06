@@ -85,6 +85,7 @@ private:
 	int bound_x1, bound_y1, bound_x2, bound_y2;
 	int boundary_set;
 	int n_fingers;
+	bool trigger_modifier;
 
 public:
 	ColorTable*    vga_color_table;
@@ -93,6 +94,7 @@ public:
 	static VgaBuf* active_buf;
 	static char    use_back_buf;
 	static char    opaque_flag;
+	static FILE*   logfile;
 
 	MouseInputMode mouse_mode;
 
@@ -126,6 +128,7 @@ public:
 	void   set_window_grab(WinGrab mode);
 	void   flip();
 	void   save_status_report();
+	static void myLogFn(void* userdata, int category, SDL_LogPriority priority, const char* message);
 
 private:
 	void   get_window_scale(float *xscale, float *yscale);

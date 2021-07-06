@@ -39,18 +39,13 @@ static void init_dpi();
 static int init_window_flags();
 static void init_window_size();
 
-static void myLogFn(void* userdata, int category, SDL_LogPriority priority, const char* message)
+void Vga::myLogFn(void* userdata, int category, SDL_LogPriority priority, const char* message)
 {
-// Change to fit your needs (like to output to a file)
-    FILE *file;
-
-    file = fopen("log.txt", "a");
-    if( !file )
+    if( !logfile )
         return;
 
-    fprintf(file, message);
-
-    fclose(file);
+    fprintf(logfile, message);
+    fprintf(logfile, "\r\n");
 }
 
 //------ Define static class member vars ---------//
@@ -58,6 +53,7 @@ static void myLogFn(void* userdata, int category, SDL_LogPriority priority, cons
 char    Vga::use_back_buf = 0;
 char    Vga::opaque_flag  = 0;
 VgaBuf* Vga::active_buf   = &vga_front;      // default: front buffer
+FILE*   Vga::logfile      = NULL;
 
 //-------- Begin of function Vga::Vga ----------//
 
@@ -99,6 +95,7 @@ int Vga::init()
    mouse_mode = MOUSE_INPUT_ABS;
    boundary_set = 0;
    n_fingers = 0;
+   trigger_modifier = false;
 
    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK))
       return 0;
@@ -112,6 +109,8 @@ int Vga::init()
        }
    }
 
+
+   logfile = fopen("log.txt", "w");
    SDL_LogSetOutputFunction(&myLogFn, NULL);
 
    init_window_size();
@@ -132,7 +131,9 @@ int Vga::init()
       return 0;
 
    if( config_adv.vga_full_screen )
-      set_window_grab(WINGRAB_ON);
+   {
+       set_window_grab(WINGRAB_ON);
+   }
 
    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE);
    if( !renderer )
@@ -215,6 +216,7 @@ int Vga::init()
 
 void Vga::deinit()
 {
+   fclose(logfile);
    SDL_SetRelativeMouseMode(SDL_FALSE);
    mouse_mode = MOUSE_INPUT_ABS;
 
@@ -572,13 +574,28 @@ void Vga::handle_messages()
           break;
 
       case SDL_JOYAXISMOTION:
-          if ((event.jaxis.value < -3200) || (event.jaxis.value > 3200)) {
-              if (event.jaxis.axis == 0) {
-                  mouse.process_mouse_motion(mouse.cur_x + event.jaxis.value / 3276, mouse.cur_y);
-              }
+          if (trigger_modifier) {
 
-              if (event.jaxis.axis == 1) {
-                  mouse.process_mouse_motion(mouse.cur_x, mouse.cur_y + event.jaxis.value / 3276);
+              if ((event.jaxis.value < -3200) || (event.jaxis.value > 3200)) {
+                  if (event.jaxis.axis == 0) {
+                      mouse.process_scroll(event.jaxis.value / 3276, 0);
+                  }
+
+                  if (event.jaxis.axis == 1) {
+                      mouse.process_scroll(0, event.jaxis.value / 3276);
+                  }
+              }
+          }
+          else {
+
+              if ((event.jaxis.value < -3200) || (event.jaxis.value > 3200)) {
+                  if (event.jaxis.axis == 0) {
+                      mouse.process_mouse_motion(mouse.cur_x + event.jaxis.value / 3276, mouse.cur_y);
+                  }
+
+                  if (event.jaxis.axis == 1) {
+                      mouse.process_mouse_motion(mouse.cur_x, mouse.cur_y + event.jaxis.value / 3276);
+                  }
               }
           }
           break;
@@ -587,13 +604,14 @@ void Vga::handle_messages()
 #ifdef __SWITCH__
           if (event.jbutton.which == 0) {
               switch (event.jbutton.button) {
-                  case 0:
-                      // (A) button down
+                  case 0: // (A) button down
                       mouse.add_event(LEFT_BUTTON);
                       break;
-                  case 1:
-                      // (B) button down
+                  case 1: // (B) button down
                       mouse.add_event(RIGHT_BUTTON);
+                      break;
+                  case 9: // (RBumper) button down
+                      trigger_modifier = true;
                       break;
                   default:
                       // Any other key button down
@@ -605,31 +623,37 @@ void Vga::handle_messages()
           break;
 
       case SDL_JOYBUTTONUP:
+#ifdef __SWITCH__
           if (event.jbutton.which == 0) {
-              if (event.jbutton.button == 0) {
-                  // (A) button up
-                  mouse.add_event(LEFT_BUTTON_RELEASE);
-                  mouse.reset_boundary();
-              } else if (event.jbutton.button == 1) {
-                  // (B) button up
-                  mouse.add_event(RIGHT_BUTTON_RELEASE);
+              switch (event.jbutton.button) {
+                  case 0: // (A) button up
+                    mouse.add_event(LEFT_BUTTON_RELEASE);
+                    mouse.reset_boundary();
+                    break;
+                  case 1: // (B) button up
+                    mouse.add_event(RIGHT_BUTTON_RELEASE);
+                    break;
+                  case 9: // (RBumper) button up
+                    trigger_modifier = false;
+                    break;
+                  default:
+                      break;
               }
           }
+#endif
           break;
 
       case SDL_FINGERDOWN:
       {
-          mouse.end_scroll();
           mouse.process_mouse_motion(event.tfinger.x * VGA_WIDTH, event.tfinger.y * VGA_HEIGHT, true);
 
           n_fingers++;
-
           break;
       }
       case SDL_FINGERUP:
       {
           if (event.tfinger.dx == 0 && event.tfinger.dy == 0) {
-              if (n_fingers == 2) {
+              if (trigger_modifier) {
                   mouse.add_event(RIGHT_BUTTON);
               } else {
                   mouse.add_event(LEFT_BUTTON);
@@ -644,14 +668,12 @@ void Vga::handle_messages()
       }
       case SDL_FINGERMOTION:
       {
-          if (n_fingers == 3) {
-              mouse.process_scroll(event.tfinger.dx, event.tfinger.dy);
+          if (trigger_modifier) {
+              mouse.process_scroll((int) (-0.25 * event.tfinger.dx * VGA_WIDTH), (int) (-0.25 * event.tfinger.dy * VGA_HEIGHT));
           }
           else {
-
               mouse.process_mouse_motion(event.tfinger.x * VGA_WIDTH, event.tfinger.y * VGA_HEIGHT);
           }
-
           break;
       }
       case SDL_TEXTEDITING:

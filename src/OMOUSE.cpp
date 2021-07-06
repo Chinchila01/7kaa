@@ -955,9 +955,9 @@ void Mouse::process_scroll(double x, double y)
 	else
 	{
 		double dy = y - scroll_prev_y;
-		scroll_y = dy * scroll_sensitivity;
+		scroll_y = -1 * dy * scroll_sensitivity;
 		double dx = x - scroll_prev_x;
-		scroll_x = dx * scroll_sensitivity;
+		scroll_x = -1 * dx * scroll_sensitivity;
 	}
 	scrolling = true;
 }
